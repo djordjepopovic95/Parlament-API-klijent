@@ -45,7 +45,7 @@ public class ParlamentGUI extends JFrame {
 	private JButton btnUpdateMembers;
 	private JScrollPane scrollPaneCenter;
 	private JTable table;
-	private SimpleDateFormat sdf;
+	
 
 	/**
 	 * Launch the application.
@@ -78,7 +78,6 @@ public class ParlamentGUI extends JFrame {
 		contentPane.add(getScrollPaneSouth(), BorderLayout.SOUTH);
 		contentPane.add(getPanelEast(), BorderLayout.EAST);
 		contentPane.add(getScrollPaneCenter(), BorderLayout.CENTER);
-		sdf = new SimpleDateFormat("dd.MM.yyyy.");
 	}
 
 	private JScrollPane getScrollPaneSouth() {
@@ -147,14 +146,9 @@ public class ParlamentGUI extends JFrame {
 			btnFillTable = new JButton("Fill table");
 			btnFillTable.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
-					ParlamentTableModel model = (ParlamentTableModel) table.getModel();
-					try {
-						model.ucitajPoslanike(ParlamentAPIKomunikacija.getMembers("data/serviceMembers.json"));
-						textAreaSouth.setText(textAreaSouth.getText() + "Tabela popunjena preuzetim podacima." + "\n");
-					} catch (ParseException e1) {
-						System.out.println(e1.getMessage() + "Greska pri punjenju tabele, tj. citanju iz JSONa.");
-						e1.printStackTrace();
-					}
+					
+					GUIKontroler.popuniTabelu((ParlamentTableModel) table.getModel());
+					textAreaSouth.setText(textAreaSouth.getText() + "Tabela popunjena preuzetim podacima." + "\n");
 
 				}
 			});
@@ -167,36 +161,8 @@ public class ParlamentGUI extends JFrame {
 			btnUpdateMembers = new JButton("Update members");
 			btnUpdateMembers.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
-					ParlamentTableModel model = (ParlamentTableModel) table.getModel();
-					LinkedList<Poslanik> poslanici = model.vratiPoslanike();
-					JsonArray poslaniciArray = new JsonArray();
-
-					for (int i = 0; i < poslanici.size(); i++) {
-						Poslanik p = poslanici.get(i);
-
-						JsonObject pJson = new JsonObject();
-						pJson.addProperty("id", p.getId());
-						pJson.addProperty("name", p.getIme());
-						pJson.addProperty("lastName", p.getPrezime());
-						pJson.addProperty("birthDate", sdf.format(p.getDatumRodjenja()));
-
-						poslaniciArray.add(pJson);
-					}
-					Gson gson = new GsonBuilder().setPrettyPrinting().create();
-
-					try {
-						PrintWriter out = new PrintWriter(
-								new BufferedWriter(new FileWriter("data/updatedMembers.json")));
-
-						String poslaniciString = gson.toJson(poslaniciArray);
-
-						out.println(poslaniciString);
-						out.close();
-						textAreaSouth.setText(textAreaSouth.getText() + "Izmene su sacuvane." + "\n");
-					} catch (Exception e1) {
-						System.out.println("Greska: " + e1.getMessage());
-					}
-
+					GUIKontroler.sacuvajIzmene((ParlamentTableModel) table.getModel());
+					textAreaSouth.setText(textAreaSouth.getText() + "Izmene su sacuvane." + "\n");
 				}
 			});
 		}

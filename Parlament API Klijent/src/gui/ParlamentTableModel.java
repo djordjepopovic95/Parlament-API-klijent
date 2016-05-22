@@ -84,8 +84,7 @@ public class ParlamentTableModel extends AbstractTableModel {
 				try {
 					p.setDatumRodjenja(sdf.parse((String) aValue));
 				} catch (ParseException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					System.out.println("Datum nije ispravnog formata.");
 				}
 			}
 
