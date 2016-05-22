@@ -1,8 +1,12 @@
 package util;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -19,11 +23,11 @@ import com.google.gson.JsonObject;
 import domain.Poslanik;
 
 public class ParlamentAPIKomunikacija {
-	
+
 	private static final String membersURL = "http://147.91.128.71:9090/parlament/api/members";
 	private static final SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy.");
 
-	private String sendGet(String url) throws IOException {
+	private static String sendGet(String url) throws IOException {
 		URL obj = new URL(url);
 		HttpURLConnection con = (HttpURLConnection) obj.openConnection();
 
@@ -47,36 +51,50 @@ public class ParlamentAPIKomunikacija {
 
 		return response.toString();
 	}
-	
-	public List<Poslanik> getMembers() throws ParseException {
-		try {
-			String result = sendGet(membersURL);
 
-			Gson gson = new GsonBuilder().create();
-			JsonArray membersJson = gson.fromJson(result, JsonArray.class);
+	public static LinkedList<Poslanik> getMembers(String putanja) throws ParseException {
+		try {
+			FileReader reader = new FileReader(putanja);
+			
+			Gson gson = new GsonBuilder().setPrettyPrinting().create();
+
+			JsonArray poslaniciJson = gson.fromJson(reader, JsonArray.class);
 
 			LinkedList<Poslanik> poslanici = new LinkedList<Poslanik>();
 
-			for (int i = 0; i < membersJson.size(); i++) {
-				JsonObject memberJson = (JsonObject) membersJson.get(i);
+			for (int i = 0; i < poslaniciJson.size(); i++) {
+				JsonObject poslanikJson = (JsonObject) poslaniciJson.get(i);
 
 				Poslanik p = new Poslanik();
-				p.setId(memberJson.get("id").getAsInt());
-				p.setIme(memberJson.get("name").getAsString());
-				p.setPrezime(memberJson.get("lastName").getAsString());
-				if (memberJson.get("birthDate") != null)
-					p.setDatumRodjenja(sdf.parse(memberJson.get("birthDate").getAsString()));
+				p.setId(poslanikJson.get("id").getAsInt());
+				p.setIme(poslanikJson.get("name").getAsString());
+				p.setPrezime(poslanikJson.get("lastName").getAsString());
+				if (poslanikJson.get("birthDate") != null)
+					p.setDatumRodjenja(sdf.parse(poslanikJson.get("birthDate").getAsString()));
 
 				poslanici.add(p);
 			}
 
 			return poslanici;
 
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return new LinkedList<Poslanik>();
+	}
+
+	public static void sacuvajJSON(String putanja) {
+		String result;
+		try {
+			result = sendGet(membersURL);
+			PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(putanja)));
+
+			out.println(result);
+			out.close();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
 	}
 }
