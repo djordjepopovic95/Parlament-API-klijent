@@ -98,5 +98,9 @@ public class ParlamentTableModel extends AbstractTableModel {
 		this.poslanici = poslanici;
 		fireTableDataChanged();
 	}
+	
+	public LinkedList<Poslanik> vratiPoslanike(){
+		return poslanici;
+	}
 
 }

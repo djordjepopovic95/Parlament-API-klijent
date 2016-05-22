@@ -10,6 +10,10 @@ import java.awt.Dimension;
 import javax.swing.JScrollPane;
 import javax.swing.border.TitledBorder;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 import domain.Poslanik;
 import util.ParlamentAPIKomunikacija;
@@ -21,7 +25,13 @@ import java.awt.GridBagConstraints;
 import java.awt.Insets;
 import javax.swing.JTable;
 import java.awt.event.ActionListener;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.LinkedList;
 import java.awt.event.ActionEvent;
 
 public class ParlamentGUI extends JFrame {
@@ -35,6 +45,7 @@ public class ParlamentGUI extends JFrame {
 	private JButton btnUpdateMembers;
 	private JScrollPane scrollPaneCenter;
 	private JTable table;
+	private SimpleDateFormat sdf;
 
 	/**
 	 * Launch the application.
@@ -67,31 +78,35 @@ public class ParlamentGUI extends JFrame {
 		contentPane.add(getScrollPaneSouth(), BorderLayout.SOUTH);
 		contentPane.add(getPanelEast(), BorderLayout.EAST);
 		contentPane.add(getScrollPaneCenter(), BorderLayout.CENTER);
+		sdf = new SimpleDateFormat("dd.MM.yyyy.");
 	}
 
 	private JScrollPane getScrollPaneSouth() {
 		if (scrollPaneSouth == null) {
 			scrollPaneSouth = new JScrollPane();
-			scrollPaneSouth.setViewportBorder(new TitledBorder(null, "STATUS", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+			scrollPaneSouth.setViewportBorder(
+					new TitledBorder(null, "STATUS", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 			scrollPaneSouth.setPreferredSize(new Dimension(2, 70));
 			scrollPaneSouth.setViewportView(getTextAreaSouth());
 		}
 		return scrollPaneSouth;
 	}
+
 	private JTextArea getTextAreaSouth() {
 		if (textAreaSouth == null) {
 			textAreaSouth = new JTextArea();
 		}
 		return textAreaSouth;
 	}
+
 	private JPanel getPanelEast() {
 		if (panelEast == null) {
 			panelEast = new JPanel();
 			GridBagLayout gbl_panelEast = new GridBagLayout();
-			gbl_panelEast.columnWidths = new int[]{97, 0};
-			gbl_panelEast.rowHeights = new int[]{23, 0, 0, 0};
-			gbl_panelEast.columnWeights = new double[]{0.0, Double.MIN_VALUE};
-			gbl_panelEast.rowWeights = new double[]{0.0, 0.0, 0.0, Double.MIN_VALUE};
+			gbl_panelEast.columnWidths = new int[] { 97, 0 };
+			gbl_panelEast.rowHeights = new int[] { 23, 0, 0, 0 };
+			gbl_panelEast.columnWeights = new double[] { 0.0, Double.MIN_VALUE };
+			gbl_panelEast.rowWeights = new double[] { 0.0, 0.0, 0.0, Double.MIN_VALUE };
 			panelEast.setLayout(gbl_panelEast);
 			GridBagConstraints gbc_btnGetMembers = new GridBagConstraints();
 			gbc_btnGetMembers.fill = GridBagConstraints.HORIZONTAL;
@@ -113,18 +128,20 @@ public class ParlamentGUI extends JFrame {
 		}
 		return panelEast;
 	}
+
 	private JButton getBtnGetMembers() {
 		if (btnGetMembers == null) {
 			btnGetMembers = new JButton("GET Members");
 			btnGetMembers.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent arg0) {
 					ParlamentAPIKomunikacija.sacuvajJSON("data/serviceMembers.json");
-					textAreaSouth.setText(textAreaSouth.getText() + "\n" + "Poslanici preuzeti sa servisa.");
+					textAreaSouth.setText(textAreaSouth.getText() + "Poslanici preuzeti sa servisa." + "\n");
 				}
 			});
 		}
 		return btnGetMembers;
 	}
+
 	private JButton getBtnFillTable() {
 		if (btnFillTable == null) {
 			btnFillTable = new JButton("Fill table");
@@ -133,23 +150,59 @@ public class ParlamentGUI extends JFrame {
 					ParlamentTableModel model = (ParlamentTableModel) table.getModel();
 					try {
 						model.ucitajPoslanike(ParlamentAPIKomunikacija.getMembers("data/serviceMembers.json"));
-						textAreaSouth.setText(textAreaSouth.getText() + "\n" + "Tabela popunjena preuzetim podacima.");
+						textAreaSouth.setText(textAreaSouth.getText() + "Tabela popunjena preuzetim podacima." + "\n");
 					} catch (ParseException e1) {
 						System.out.println(e1.getMessage() + "Greska pri punjenju tabele, tj. citanju iz JSONa.");
 						e1.printStackTrace();
 					}
-					
+
 				}
 			});
 		}
 		return btnFillTable;
 	}
+
 	private JButton getBtnUpdateMembers() {
 		if (btnUpdateMembers == null) {
 			btnUpdateMembers = new JButton("Update members");
+			btnUpdateMembers.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					ParlamentTableModel model = (ParlamentTableModel) table.getModel();
+					LinkedList<Poslanik> poslanici = model.vratiPoslanike();
+					JsonArray poslaniciArray = new JsonArray();
+
+					for (int i = 0; i < poslanici.size(); i++) {
+						Poslanik p = poslanici.get(i);
+
+						JsonObject pJson = new JsonObject();
+						pJson.addProperty("id", p.getId());
+						pJson.addProperty("name", p.getIme());
+						pJson.addProperty("lastName", p.getPrezime());
+						pJson.addProperty("birthDate", sdf.format(p.getDatumRodjenja()));
+
+						poslaniciArray.add(pJson);
+					}
+					Gson gson = new GsonBuilder().setPrettyPrinting().create();
+
+					try {
+						PrintWriter out = new PrintWriter(
+								new BufferedWriter(new FileWriter("data/updatedMembers.json")));
+
+						String poslaniciString = gson.toJson(poslaniciArray);
+
+						out.println(poslaniciString);
+						out.close();
+						textAreaSouth.setText(textAreaSouth.getText() + "Izmene su sacuvane." + "\n");
+					} catch (Exception e1) {
+						System.out.println("Greska: " + e1.getMessage());
+					}
+
+				}
+			});
 		}
 		return btnUpdateMembers;
 	}
+
 	private JScrollPane getScrollPaneCenter() {
 		if (scrollPaneCenter == null) {
 			scrollPaneCenter = new JScrollPane();
@@ -157,6 +210,7 @@ public class ParlamentGUI extends JFrame {
 		}
 		return scrollPaneCenter;
 	}
+
 	private JTable getTable() {
 		if (table == null) {
 			table = new JTable();
@@ -165,11 +219,5 @@ public class ParlamentGUI extends JFrame {
 		}
 		return table;
 	}
-	/*
-	public void osveziTabelu() {
-		ParlamentTableModel model = (ParlamentTableModel) table.getModel();
-		model.ucitajKnjige(GUIKontroler.vratiSveKnjige());
-
-	}
-	*/
+	
 }
