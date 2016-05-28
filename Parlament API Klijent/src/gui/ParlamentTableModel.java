@@ -5,6 +5,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.LinkedList;
 
+import javax.swing.JOptionPane;
 import javax.swing.table.AbstractTableModel;
 
 import domain.Poslanik;
@@ -74,17 +75,20 @@ public class ParlamentTableModel extends AbstractTableModel {
 				if (aValue != null && (String) aValue != "") {
 					p.setIme((String) aValue);
 				} else
-					System.out.println("String ne sme da bude prazan.");
+					JOptionPane.showMessageDialog(null, "String ne sme da bude prazan.", "Greska!",
+							JOptionPane.ERROR_MESSAGE);
 			case 2:
 				if (aValue != null && (String) aValue != "") {
 					p.setPrezime((String) aValue);
 				} else
-					System.out.println("String ne sme da bude prazan.");
+					JOptionPane.showMessageDialog(null, "String ne sme da bude prazan.", "Greska!",
+							JOptionPane.ERROR_MESSAGE);
 			case 3:
 				try {
 					p.setDatumRodjenja(sdf.parse((String) aValue));
 				} catch (ParseException e) {
-					System.out.println("Datum nije ispravnog formata.");
+					JOptionPane.showMessageDialog(null, "Datum nije ispravnog formata.", "Greska!",
+							JOptionPane.ERROR_MESSAGE);
 				}
 			}
 
@@ -97,8 +101,8 @@ public class ParlamentTableModel extends AbstractTableModel {
 		this.poslanici = poslanici;
 		fireTableDataChanged();
 	}
-	
-	public LinkedList<Poslanik> vratiPoslanike(){
+
+	public LinkedList<Poslanik> vratiPoslanike() {
 		return poslanici;
 	}
 

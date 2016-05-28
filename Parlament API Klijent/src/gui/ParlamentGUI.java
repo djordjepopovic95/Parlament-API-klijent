@@ -45,23 +45,6 @@ public class ParlamentGUI extends JFrame {
 	private JButton btnUpdateMembers;
 	private JScrollPane scrollPaneCenter;
 	private JTable table;
-	
-
-	/**
-	 * Launch the application.
-	 */
-	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					ParlamentGUI frame = new ParlamentGUI();
-					frame.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}
 
 	/**
 	 * Create the frame.
@@ -146,7 +129,7 @@ public class ParlamentGUI extends JFrame {
 			btnFillTable = new JButton("Fill table");
 			btnFillTable.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
-					
+
 					GUIKontroler.popuniTabelu((ParlamentTableModel) table.getModel());
 					textAreaSouth.setText(textAreaSouth.getText() + "Tabela popunjena preuzetim podacima." + "\n");
 
@@ -185,5 +168,5 @@ public class ParlamentGUI extends JFrame {
 		}
 		return table;
 	}
-	
+
 }

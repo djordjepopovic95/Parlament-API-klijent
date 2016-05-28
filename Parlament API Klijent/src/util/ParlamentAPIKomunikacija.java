@@ -52,10 +52,10 @@ public class ParlamentAPIKomunikacija {
 		return response.toString();
 	}
 
-	public static LinkedList<Poslanik> getMembers(String putanja) throws ParseException {
+	public static LinkedList<Poslanik> vratiPoslanike(String putanja) throws ParseException {
 		try {
 			FileReader reader = new FileReader(putanja);
-			
+
 			Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
 			JsonArray poslaniciJson = gson.fromJson(reader, JsonArray.class);
@@ -87,6 +87,7 @@ public class ParlamentAPIKomunikacija {
 		String result;
 		try {
 			result = sendGet(membersURL);
+
 			PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(putanja)));
 
 			out.println(result);

@@ -8,13 +8,13 @@ public class Poslanik {
 
 	@SerializedName("id")
 	private int id;
-	
+
 	@SerializedName("firstName")
 	private String ime;
-	
+
 	@SerializedName("lastName")
 	private String prezime;
-	
+
 	@SerializedName("birthDate")
 	private Date datumRodjenja;
 
